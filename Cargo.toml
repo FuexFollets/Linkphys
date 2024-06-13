@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+trait-set = "0.3.0"
 uom = "0.36.0"
 
 [build]
