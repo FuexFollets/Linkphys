@@ -68,6 +68,12 @@ pub struct Vector2D<T: Clone> {
     y: T,
 }
 
+impl<T: Clone> Vector2D<T> {
+    pub fn new(x: T, y: T) -> Self {
+        Self { x, y }
+    }
+}
+
 impl<T: Clone> Clone for Vector2D<T> {
     fn clone(&self) -> Self {
         Vector2D {
@@ -104,69 +110,6 @@ where
         }
     }
 }
-
-/*
-#[allow(dead_code)]
-trait UOMVectorMagnitudeF32<T: Clone + GetValueF32<T>>
-where
-    T: uom::num_traits::Num + Conversion<f32>,
-{
-    fn magnitude(&self) -> T;
-}
-
-trait GetValueF32<T> {
-    fn value(&self) -> f32;
-    fn new(value: f32) -> T;
-}
-
-impl<T: Clone + GetValueF32<T>> UOMVectorMagnitudeF32<T> for Vector2D<T>
-where
-    T: uom::num_traits::Num + Conversion<f32>,
-{
-    fn magnitude(&self) -> T {
-        T::new((self.x.value().powi(2) + self.y.value().powi(2)).sqrt())
-    }
-}
-
-#[allow(dead_code)]
-trait UOMVectorMagnitudeF64<T: Clone + GetValueF64<T>>
-where
-    T: uom::num_traits::Num + Conversion<f64>,
-{
-    fn magnitude(&self) -> T;
-}
-
-trait GetValueF64<T> {
-    fn value(&self) -> f64;
-    fn new(value: f64) -> T;
-}
-
-impl<T: Clone + GetValueF64<T>> UOMVectorMagnitudeF64<T> for Vector2D<T>
-where
-    T: uom::num_traits::Num + Conversion<f64>,
-{
-    fn magnitude(&self) -> T {
-        T::new((self.x.value().powi(2) + self.y.value().powi(2)).sqrt())
-    }
-}
-
-#[allow(dead_code)]
-trait VectorMagnitude<T> {
-    fn magnitude(&self) -> T;
-}
-
-impl VectorMagnitude<f32> for Vector2D<f32> {
-    fn magnitude(&self) -> f32 {
-        (self.x.powi(2) + self.y.powi(2)).sqrt()
-    }
-}
-
-impl VectorMagnitude<f64> for Vector2D<f64> {
-    fn magnitude(&self) -> f64 {
-        (self.x.powi(2) + self.y.powi(2)).sqrt()
-    }
-}
-*/
 
 impl<T: Clone> ToString for Vector2D<T>
 where
