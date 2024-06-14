@@ -1,0 +1,27 @@
+use crate::system_objects::vector2d::Vector2D;
+use uom::si::f64::{
+    Acceleration, Angle, AngularAcceleration, AngularVelocity, Length, Mass, MomentOfInertia,
+    Velocity,
+};
+
+pub struct MobileTranslationalMotion {
+    pub position: Vector2D<Length>,
+    pub velocity: Vector2D<Velocity>,
+    pub acceleration: Vector2D<Acceleration>,
+}
+
+pub enum TranslationalMotion {
+    Fixed(MobileTranslationalMotion),
+    Mobile(MobileTranslationalMotion),
+}
+
+pub struct MobileRotationalMotion {
+    pub angular_position: Angle,
+    pub angular_velocity: AngularVelocity,
+    pub angular_acceleration: AngularAcceleration,
+}
+
+pub enum RotationalMotion {
+    Fixed(MobileRotationalMotion),
+    Mobile(MobileRotationalMotion),
+}

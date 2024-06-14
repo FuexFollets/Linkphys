@@ -64,8 +64,8 @@ macro_rules! vector2d_magnitude {
 }
 
 pub struct Vector2D<T: Clone> {
-    x: T,
-    y: T,
+    pub x: T,
+    pub y: T,
 }
 
 impl<T: Clone> Vector2D<T> {
@@ -80,6 +80,11 @@ impl<T: Clone> Clone for Vector2D<T> {
             x: self.x.clone(),
             y: self.y.clone(),
         }
+    }
+}
+
+impl<T: Clone> Copy for Vector2D<T> {
+    fn copy(&self) -> Self {
     }
 }
 
