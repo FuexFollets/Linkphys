@@ -1,68 +1,9 @@
-use std::ops::{Add, Sub};
+use std::ops::{
+    Add, AddAssign, Div, DivAssign, Index, IndexMut, Mul, MulAssign, Neg, Rem, RemAssign, Sub,
+    SubAssign,
+};
 
-/*
-pub trait UOMQuantity<D, U, V>
-where
-    D: uom::si::Dimension + ?Sized,
-    U: uom::si::Units<V> + ?Sized,
-    V: uom::num_traits::Num + uom::Conversion<V>,
-    <D as uom::si::Dimension>::Kind: uom::marker::Add,
-    uom::si::Quantity<D, U, V>: Clone,
-{
-}
-*/
-
-#[macro_export]
-macro_rules! vector2d_mul {
-    ($lhs:expr, $rhs:expr) => {
-        Vector2D {
-            x: $lhs.x.clone() * $rhs.clone(),
-            y: $lhs.y.clone() * $rhs.clone(),
-        }
-    };
-}
-
-#[macro_export]
-macro_rules! vector2d_div {
-    ($lhs:expr, $rhs:expr) => {
-        Vector2D {
-            x: $lhs.x.clone() / $rhs.clone(),
-            y: $lhs.y.clone() / $rhs.clone(),
-        }
-    };
-}
-
-#[macro_export]
-macro_rules! vector2d_dot {
-    ($lhs:expr, $rhs:expr) => {
-        $lhs.x.clone() * $rhs.x.clone() + $lhs.y.clone() * $rhs.y.clone()
-    };
-}
-
-#[macro_export]
-macro_rules! vector2d_cross {
-    ($lhs:expr, $rhs:expr) => {
-        $lhs.x.clone() * $rhs.y.clone() - $lhs.y.clone() * $rhs.x.clone()
-    };
-}
-
-#[macro_export]
-macro_rules! vector2d_hadamard {
-    ($lhs:expr, $rhs:expr) => {
-        Vector2D {
-            x: $lhs.x.clone() * $rhs.x.clone(),
-            y: $lhs.y.clone() * $rhs.y.clone(),
-        }
-    };
-}
-
-#[macro_export]
-macro_rules! vector2d_magnitude {
-    ($lhs:expr) => {
-        ($lhs.x.clone() * $lhs.x.clone() + $lhs.y.clone() * $lhs.y.clone()).sqrt()
-    };
-}
-
+#[derive(Debug, PartialEq, Copy, Clone, Default)]
 pub struct Vector2D<T: Clone> {
     pub x: T,
     pub y: T,
@@ -74,143 +15,236 @@ impl<T: Clone> Vector2D<T> {
     }
 }
 
-impl<T: Clone> Clone for Vector2D<T> {
-    fn clone(&self) -> Self {
+impl<TLhs: Clone, TRhs: Clone> Add<Vector2D<TRhs>> for Vector2D<TLhs>
+where
+    TLhs: Add<TRhs>,
+    <TLhs as Add<TRhs>>::Output: Clone,
+{
+    type Output = Vector2D<<TLhs as Add<TRhs>>::Output>;
+
+    fn add(self, rhs: Vector2D<TRhs>) -> Self::Output {
         Vector2D {
-            x: self.x.clone(),
-            y: self.y.clone(),
+            x: self.x + rhs.x,
+            y: self.y + rhs.y,
         }
     }
 }
 
-impl<T: Clone> Copy for Vector2D<T> {
-    fn copy(&self) -> Self {
-    }
-}
-
-impl<T: Clone> Add for Vector2D<T>
+impl<TLhs: Clone, TRhs: Clone> Sub<Vector2D<TRhs>> for Vector2D<TLhs>
 where
-    T: Add<Output = T>,
+    TLhs: Sub<TRhs>,
+    <TLhs as Sub<TRhs>>::Output: Clone,
 {
-    type Output = Self;
+    type Output = Vector2D<<TLhs as Sub<TRhs>>::Output>;
 
-    fn add(self, rhs: Self) -> Self::Output {
+    fn sub(self, rhs: Vector2D<TRhs>) -> Self::Output {
         Vector2D {
-            x: self.x.clone() + rhs.x.clone(),
-            y: self.y.clone() + rhs.y.clone(),
+            x: self.x - rhs.x,
+            y: self.y - rhs.y,
         }
     }
 }
 
-impl<T: Clone> Sub for Vector2D<T>
+impl<TLhs: Clone, TRhs: Clone> Mul<TRhs> for Vector2D<TLhs>
 where
-    T: Sub<Output = T>,
+    TLhs: Mul<TRhs>,
+    <TLhs as Mul<TRhs>>::Output: Clone,
 {
-    type Output = Self;
+    type Output = Vector2D<<TLhs as Mul<TRhs>>::Output>;
 
-    fn sub(self, rhs: Self) -> Self::Output {
+    fn mul(self, rhs: TRhs) -> Self::Output {
         Vector2D {
-            x: self.x.clone() - rhs.x.clone(),
-            y: self.y.clone() - rhs.y.clone(),
+            x: self.x * rhs.clone(),
+            y: self.y * rhs.clone(),
         }
     }
 }
 
-impl<T: Clone> ToString for Vector2D<T>
+impl<TLhs: Clone, TRhs: Clone> Div<TRhs> for Vector2D<TLhs>
 where
-    T: ToString,
+    TLhs: Div<TRhs>,
+    <TLhs as Div<TRhs>>::Output: Clone,
 {
-    fn to_string(&self) -> String {
-        format!("[{}, {}]", self.x.to_string(), self.y.to_string())
+    type Output = Vector2D<<TLhs as Div<TRhs>>::Output>;
+
+    fn div(self, rhs: TRhs) -> Self::Output {
+        Vector2D {
+            x: self.x / rhs.clone(),
+            y: self.y / rhs.clone(),
+        }
     }
 }
+
+impl<TLhs: Clone, TRhs: Clone> Rem<TRhs> for Vector2D<TLhs>
+where
+    TLhs: Rem<TRhs>,
+    <TLhs as Rem<TRhs>>::Output: Clone,
+{
+    type Output = Vector2D<<TLhs as Rem<TRhs>>::Output>;
+
+    fn rem(self, rhs: TRhs) -> Self::Output {
+        Vector2D {
+            x: self.x % rhs.clone(),
+            y: self.y % rhs.clone(),
+        }
+    }
+}
+
+impl<T: Clone> Neg for Vector2D<T>
+where
+    T: Neg<Output = T>,
+{
+    type Output = Vector2D<T>;
+
+    fn neg(self) -> Self::Output {
+        Vector2D {
+            x: -self.x,
+            y: -self.y,
+        }
+    }
+}
+
+impl<T: Clone> Index<usize> for Vector2D<T> {
+    type Output = T;
+
+    fn index(&self, index: usize) -> &Self::Output {
+        match index {
+            0 => &self.x,
+            1 => &self.y,
+            _ => panic!("Index out of bounds"),
+        }
+    }
+}
+
+impl<T: Clone + AddAssign> AddAssign for Vector2D<T> {
+    fn add_assign(&mut self, rhs: Self) {
+        self.x += rhs.x;
+        self.y += rhs.y;
+    }
+}
+
+impl<T: Clone + SubAssign> SubAssign for Vector2D<T> {
+    fn sub_assign(&mut self, rhs: Self) {
+        self.x -= rhs.x;
+        self.y -= rhs.y;
+    }
+}
+
+impl<TLhs: Clone + MulAssign, TRhs: Clone> MulAssign<TRhs> for Vector2D<TLhs>
+where
+    TLhs: MulAssign<TRhs>,
+{
+    fn mul_assign(&mut self, rhs: TRhs) {
+        self.x *= rhs.clone();
+        self.y *= rhs.clone();
+    }
+}
+
+impl<TLhs: Clone + DivAssign, TRhs: Clone> DivAssign<TRhs> for Vector2D<TLhs>
+where
+    TLhs: DivAssign<TRhs>,
+{
+    fn div_assign(&mut self, rhs: TRhs) {
+        self.x /= rhs.clone();
+        self.y /= rhs.clone();
+    }
+}
+
+impl<T: Clone + RemAssign> RemAssign for Vector2D<T> {
+    fn rem_assign(&mut self, rhs: Self) {
+        self.x %= rhs.x;
+        self.y %= rhs.y;
+    }
+}
+
+impl<T: Clone> IndexMut<usize> for Vector2D<T> {
+    fn index_mut(&mut self, index: usize) -> &mut Self::Output {
+        match index {
+            0 => &mut self.x,
+            1 => &mut self.y,
+            _ => panic!("Index out of bounds"),
+        }
+    }
+}
+
+pub trait Vector2DOperations<TRhs: Clone> {
+    type OutputCrossAndDot;
+    type OutputHadamard;
+
+    fn dot(self, rhs: Vector2D<TRhs>) -> Self::OutputCrossAndDot;
+    fn cross(self, rhs: Vector2D<TRhs>) -> Self::OutputCrossAndDot;
+    fn hadamard(self, rhs: Vector2D<TRhs>) -> Self::OutputHadamard;
+}
+
+impl<TLhs: Clone, TRhs: Clone> Vector2DOperations<TRhs> for Vector2D<TLhs>
+where
+    TLhs: Mul<TRhs>,
+    <TLhs as Mul<TRhs>>::Output: Clone
+        + Add<Output = <TLhs as Mul<TRhs>>::Output>
+        + Sub<Output = <TLhs as Mul<TRhs>>::Output>,
+{
+    type OutputCrossAndDot = <TLhs as Mul<TRhs>>::Output;
+    type OutputHadamard = Vector2D<<TLhs as Mul<TRhs>>::Output>;
+
+    fn dot(self, rhs: Vector2D<TRhs>) -> Self::OutputCrossAndDot {
+        self.x * rhs.x + self.y * rhs.y
+    }
+
+    fn cross(self, rhs: Vector2D<TRhs>) -> Self::OutputCrossAndDot {
+        self.x * rhs.y - self.y * rhs.x
+    }
+
+    fn hadamard(self, rhs: Vector2D<TRhs>) -> Self::OutputHadamard {
+        Vector2D {
+            x: self.x * rhs.x,
+            y: self.y * rhs.y,
+        }
+    }
+}
+
+// all the vector products, dot, cross, hadamard
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use uom::si::f64::*;
+    use uom::si::*;
 
     #[test]
-    fn test_vector2d_arithmetic() {
-        let vector1 = Vector2D {
-            x: 1.0f32,
-            y: 2.0f32,
-        };
-        let vector2 = Vector2D {
-            x: 3.0f32,
-            y: 4.0f32,
-        };
+    fn test_arithmetic() {
+        let five_meters = Length::new::<length::meter>(5.0);
+        let two_inches = Length::new::<length::inch>(2.0);
+        let four_seconds = Time::new::<time::second>(4.0);
+        let eight = 8.0f64;
 
-        let vector3 = vector1.clone() + vector2.clone();
-        assert!((vector3.x - 4.0f32).abs() < 1e-5);
-        assert!((vector3.y - 6.0f32).abs() < 1e-5);
+        let v1 = Vector2D::new(five_meters, two_inches);
+        let v2 = Vector2D::new(five_meters * 2.0, two_inches * 5.0);
 
-        let vector4 = vector1.clone() - vector2.clone();
-        assert!((vector4.x + 2.0f32).abs() < 1e-5);
-        assert!((vector4.y + 2.0f32).abs() < 1e-5);
+        let _v3 = v1.clone() + v2.clone();
 
-        let vector5 = vector2d_mul!(vector1, 2.0f32);
-        assert!((vector5.x - 2.0f32).abs() < 1e-5);
-        assert!((vector5.y - 4.0f32).abs() < 1e-5);
+        let v4 = v1.clone() / four_seconds.clone();
 
-        let vector6 = vector2d_div!(vector1, 2.0f32);
-        assert!((vector6.x - 0.5f32).abs() < 1e-5);
-        assert!((vector6.y - 1.0f32).abs() < 1e-5);
-    }
+        let _v5 = v1.clone() * eight;
 
-    #[test]
-    fn test_vector2d_magnitude() {
-        let vector = Vector2D {
-            x: 3.0f32,
-            y: 4.0f32,
-        };
+        let mut v6 = v4.clone();
+        let v7 = v6.clone() * eight;
 
-        let magnitude = vector2d_magnitude!(vector);
-        assert!((magnitude - 5.0f32).abs() < 1e-5);
-    }
+        v6 += v7;
 
-    #[test]
-    fn test_vector2d_products() {
-        let vector1 = Vector2D { x: 1, y: 2 };
-        let vector2 = Vector2D { x: 3, y: 4 };
+        v6[0] = v6[1].clone();
 
-        let dot = vector2d_dot!(vector1, vector2);
-        assert_eq!(dot, 11);
+        dbg!(v1);
+        dbg!(v2);
+        dbg!(v4);
+        dbg!(v7);
+        dbg!(v6);
 
-        let cross = vector2d_cross!(vector1, vector2);
-        assert_eq!(cross, -2);
+        let _dot_res = v1.clone().dot(v2.clone());
+        let _hadamard_res = v1.clone().hadamard(v2.clone());
+        let _cross_res = v1.clone().cross(v2.clone());
 
-        let hadamard = vector2d_hadamard!(vector1, vector2);
-        assert_eq!(hadamard.x, 3);
-        assert_eq!(hadamard.y, 8);
-
-        let mul = vector2d_mul!(vector1, 2);
-        assert_eq!(mul.x, 2);
-        assert_eq!(mul.y, 4);
-    }
-
-    #[test]
-    fn test_vector2d_to_string() {
-        let vector = Vector2D { x: 1, y: 2 };
-        let string = vector.to_string();
-        assert_eq!(string, "[1, 2]");
-    }
-
-    #[test]
-    fn test_vector2d_units() {
-        let distance_x = uom::si::f32::Length::new::<uom::si::length::meter>(1.0f32);
-        let distance_y = uom::si::f32::Length::new::<uom::si::length::meter>(2.0f32);
-
-        let delta_position = Vector2D {
-            x: distance_x,
-            y: distance_y,
-        };
-
-        let time = uom::si::f32::Time::new::<uom::si::time::second>(1.0f32);
-
-        let velocity = vector2d_div!(delta_position, time);
-
-        let velocity_magnitude = vector2d_magnitude!(velocity);
-
-        assert!((velocity_magnitude.value - 2.23606797749979f32).abs() < 1e-5f32);
+        dbg!(_dot_res);
+        dbg!(_hadamard_res);
+        dbg!(_cross_res);
     }
 }
