@@ -1,4 +1,4 @@
-pub mod system_objects;
+pub mod system;
 
 pub fn printhelloworld() {
     println!("Hello, world!");
