@@ -5,6 +5,8 @@ use std::ops::{
 
 use std::fmt::Display;
 
+use ndarray;
+
 #[derive(Debug, PartialEq, Copy, Clone)]
 pub struct VectorND<T: Clone, const N: usize> {
     pub data: [T; N],
@@ -339,6 +341,97 @@ where
     }
 }
 
+impl<TLhs: Clone, TRhs: Clone, const N: usize, const M: usize> MulAssign<MatrixNMD<TRhs, N, M>>
+    for MatrixNMD<TLhs, N, M>
+where
+    TLhs: MulAssign<TRhs> + Clone,
+{
+    fn mul_assign(&mut self, rhs: MatrixNMD<TRhs, N, M>) {
+        for row in 0..M {
+            for column in 0..N {
+                self.data[row][column] *= rhs.data[row][column].clone();
+            }
+        }
+    }
+}
+
+impl<TLhs: Clone, TRhs: Clone, const N: usize, const M: usize> DivAssign<MatrixNMD<TRhs, N, M>>
+    for MatrixNMD<TLhs, N, M>
+where
+    TLhs: DivAssign<TRhs> + Clone,
+{
+    fn div_assign(&mut self, rhs: MatrixNMD<TRhs, N, M>) {
+        for row in 0..M {
+            for column in 0..N {
+                self.data[row][column] /= rhs.data[row][column].clone();
+            }
+        }
+    }
+}
+
+impl<TLhs: Clone, TRhs: Clone, const N: usize, const M: usize> RemAssign<MatrixNMD<TRhs, N, M>>
+    for MatrixNMD<TLhs, N, M>
+where
+    TLhs: RemAssign<TRhs> + Clone,
+{
+    fn rem_assign(&mut self, rhs: MatrixNMD<TRhs, N, M>) {
+        for row in 0..M {
+            for column in 0..N {
+                self.data[row][column] %= rhs.data[row][column].clone();
+            }
+        }
+    }
+}
+
+impl<T: Clone, const N: usize, const M: usize> Display for MatrixNMD<T, N, M>
+where
+    T: Display,
+{
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        for row in 0..M {
+            write!(f, "[")?;
+            for column in 0..N {
+                write!(f, "{}", self.data[row][column])?;
+                if column < N - 1 {
+                    write!(f, ", ")?;
+                }
+            }
+            write!(f, "]\n")?;
+        }
+        Ok(())
+    }
+}
+
+// implementing products for vector and matrix (dot, cross, hadamard)
+
+pub trait DotProduct<TRhs: Clone, const N: usize> {
+    type OutputCrossAndDot;
+
+    fn dot(self, rhs: VectorND<TRhs, N>) -> Self::OutputCrossAndDot;
+}
+
+impl<const N: std::vec<usize>> DotProduct<f64, N> for VectorND<f64, N> {
+    
+}
+
+/*
+impl<TLhs: Clone, TRhs: Clone, const N: usize> VectorProducts<TRhs, N> for VectorND<TLhs, N>
+where
+    <TLhs as Mul<TRhs>>::Output: Clone + Default,
+    TLhs: Mul<TRhs>,
+{
+    type OutputMul = <TLhs as Mul<TRhs>>::Output;
+    type OutputCrossAndDot = <TLhs as Mul<TRhs>>::Output;
+    type OutputHadamard = VectorND<<TLhs as Mul<TRhs>>::Output, N>;
+
+    fn dot(self, VectorND { data }: VectorND<TRhs, N>) -> Self::OutputCrossAndDot {}
+
+    fn cross(self, rhs: VectorND<TRhs, N>) -> Self::OutputCrossAndDot {}
+
+    fn hadamard(self, rhs: VectorND<TRhs, N>) -> Self::OutputHadamard {}
+}
+*/
+
 /*
 pub trait Vector2DOperations<TRhs: Clone> {
     type OutputCrossAndDot;
@@ -381,8 +474,28 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
+    use ndarray::Dim;
     use uom::si::f64::*;
     use uom::si::*;
+
+    #[test]
+    fn test_ndarray() {
+        type T = ndarray::Array<ndarray::OwnedRepr<[f64; 4]>, Dim<[usize; 0]>>;
+
+        let values = [1.0, 2.0, 3.0, 4.0];
+
+        let array = ndarray::arr0([values, values]);
+
+        dbg!(array);
+    }
+
+    #[test]
+    fn test_sum_uom() {
+        let five_meters = Length::new::<length::meter>(5.0);
+        let list = [five_meters, five_meters, five_meters, five_meters];
+
+        let res = list.iter().fold(Length::default(), |acc, x| acc + *x);
+    }
 
     #[test]
     fn test_arithmetic() {
@@ -391,34 +504,9 @@ mod tests {
         let four_seconds = Time::new::<time::second>(4.0);
         let eight = 8.0f64;
 
-        let v1 = Vector2D::new(five_meters, two_inches);
-        let v2 = Vector2D::new(five_meters * 2.0, two_inches * 5.0);
+        let v1 = VectorND::new([five_meters, two_inches, five_meters * eight]);
+        let v2 = VectorND::new([two_inches * 100.0, two_inches, two_inches * eight]);
 
-        let _v3 = v1.clone() + v2.clone();
-
-        let v4 = v1.clone() / four_seconds.clone();
-
-        let _v5 = v1.clone() * eight;
-
-        let mut v6 = v4.clone();
-        let v7 = v6.clone() * eight;
-
-        v6 += v7;
-
-        v6[0] = v6[1].clone();
-
-        dbg!(v1);
-        dbg!(v2);
-        dbg!(v4);
-        dbg!(v7);
-        dbg!(v6);
-
-        let _dot_res = v1.clone().dot(v2.clone());
-        let _hadamard_res = v1.clone().hadamard(v2.clone());
-        let _cross_res = v1.clone().cross(v2.clone());
-
-        dbg!(_dot_res);
-        dbg!(_hadamard_res);
-        dbg!(_cross_res);
+        let res = (v1 - v2) * four_seconds / 10.0;
     }
 }
